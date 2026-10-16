@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nettai</title>
+<meta name="description" content="Play Mega Man Battle Network 4, 5 and 6 netbattles online.">
+<meta name="theme-color" content="#0a1330">
+<meta property="og:title" content="nettai">
+<meta property="og:description" content="Play Mega Man Battle Network 4, 5 and 6 netbattles online.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nettaisen.github.io/">
+<meta property="og:image" content="https://nettaisen.github.io/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Murecho:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground-top: #0a1330;
+  --ground-bottom: #050916;
+  --glow: #286eff47;
+  --panel: #0c1836;
+  --raised: #13254d;
+  --line: #27508f;
+  --inset: #040813;
+  --text: #eaf3ff;
+  --muted: #8ea8d4;
+  --dim: #55698f;
+  --cursor: #66e0ff;
+  --action: #ffb62e;
+  --action-ink: #1b1100;
+  --p1: #ff5d50;
+  --p2: #4a93ff;
+  --display: "Chakra Petch", "Murecho", system-ui, sans-serif;
+  --body: "Murecho", system-ui, sans-serif;
+  --gutter: clamp(16px, 4vw, 48px);
+  --chamfer: 14px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--ground-bottom);
+  color: var(--text);
+  font: 400 17px/1.65 var(--body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+/* The app's ground: a navy fall, a blue glow at the top right, a faint hex grid. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1100px 700px at 85% -10%, var(--glow), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0 56 16.2v32.3L28 64.7 0 48.5V16.2zM28 64.7V97' fill='none' stroke='%2362b4ff' stroke-opacity='.07' stroke-width='1'/%3E%3C/svg%3E"),
+    linear-gradient(var(--ground-top), var(--ground-bottom) 900px);
+}
+a { color: var(--cursor); }
+img, video { display: block; width: 100%; height: auto; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--gutter); }
+
+/* Spaced capitals, as the app labels its panels. */
+.caps {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+:lang(ja) .caps { letter-spacing: .06em; }
+
+/* Header */
+header.top .wrap { display: flex; align-items: center; gap: 24px; height: 72px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font: 700 22px/1 var(--display); letter-spacing: .02em; }
+.brand img { width: 30px; height: 30px; }
+header nav { display: flex; gap: 24px; margin-left: auto; align-items: center; }
+.lang { display: flex; border: 1px solid var(--line); }
+.lang button {
+  background: none; border: 0; color: var(--dim); cursor: pointer;
+  font: 600 13px/1 var(--display); padding: 7px 10px; letter-spacing: .06em;
+}
+.lang button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+
+/* Buttons: raised, the corner cut. */
+.btn {
+  --cut: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 24px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--raised);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background .15s;
+}
+.btn:hover { background: #1a3264; }
+.btn.primary { background: var(--action); color: var(--action-ink); box-shadow: none; }
+.btn.primary:hover { background: #ffc657; }
+.btn:focus-visible, .lang button:focus-visible, .mute:focus-visible { outline: 2px solid var(--cursor); outline-offset: 3px; }
+
+/* Hero */
+.hero { padding: clamp(8px, 2vw, 24px) 0 0; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+.hero h1 { font: 700 clamp(30px, 3.6vw, 44px)/1.15 var(--display); margin: 0 0 18px; }
+:lang(ja) .hero h1 { font-family: var(--body); line-height: 1.35; font-size: clamp(26px, 3vw, 36px); }
+.hero p { color: var(--muted); margin: 0 0 28px; max-width: 30em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } }
+
+/* A framed screen, with the app's cursor brackets at two corners. */
+.screen {
+  position: relative;
+  background: var(--inset);
+  box-shadow: 0 0 0 1px var(--line), 0 30px 80px -30px #000c, 0 0 120px -40px #286eff66;
+}
+.screen img, .screen video { aspect-ratio: 16 / 10; object-fit: cover; }
+.screen::before, .screen::after {
+  content: ""; position: absolute; width: 18px; height: 18px; pointer-events: none;
+  border: 2px solid var(--cursor);
+}
+.screen::before { top: -8px; left: -8px; border-right: 0; border-bottom: 0; }
+.screen::after { bottom: -8px; right: -8px; border-left: 0; border-top: 0; }
+.mute {
+  position: absolute; right: 12px; bottom: 12px;
+  background: color-mix(in srgb, var(--inset) 80%, transparent); color: var(--text);
+  border: 1px solid var(--line); padding: 8px 12px; cursor: pointer;
+  font: 600 12px/1 var(--display); letter-spacing: .14em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.mute:hover { border-color: var(--cursor); }
+.mute svg { width: 16px; height: 16px; }
+.mute .on, .mute[aria-pressed="true"] .off { display: none; }
+.mute[aria-pressed="true"] .on { display: inline; }
+:lang(ja) .mute { letter-spacing: .04em; }
+
+/* The cut corner's edge: the clip takes the corner off, this draws the border along the cut. */
+.panel, .games li, .dl { --edge: color-mix(in srgb, var(--line) 70%, transparent); }
+.dl.mine { --edge: var(--cursor); }
+.panel::after, .games li::after, .dl::after {
+  content: ""; position: absolute; right: 0; bottom: 0; pointer-events: none;
+  width: var(--chamfer); height: var(--chamfer);
+  background: linear-gradient(to bottom right, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px), var(--edge) 50%, transparent 50%);
+}
+.games li { position: relative; }
+
+/* The three games */
+.games { list-style: none; margin: clamp(48px, 7vw, 80px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.games li {
+  padding: 16px 20px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%);
+  border-top: 3px solid var(--c);
+}
+.games b { display: block; font: 700 18px/1.3 var(--display); }
+:lang(ja) .games b { font-family: var(--body); }
+.games span { color: var(--muted); font-size: 15px; }
+@media (max-width: 760px) { .games { grid-template-columns: 1fr; } }
+
+/* Parts: a panel's label, a line, a screen. */
+.part { padding-top: clamp(64px, 9vw, 104px); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 4vw, 48px); align-items: center; }
+.part.flip { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+.part.flip > .panel { order: 2; }
+@media (max-width: 860px) {
+  .part, .part.flip { grid-template-columns: 1fr; }
+  .part.flip > .panel { order: 0; }
+}
+
+/* A panel as the app draws one: the corner cut, a light along its top edge, a label over a rule. */
+.panel {
+  position: relative;
+  padding: 26px 28px 30px;
+  background: linear-gradient(180deg, var(--raised), var(--panel) 70%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%);
+}
+.panel::before {
+  content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 45%;
+  background: linear-gradient(90deg, var(--cursor), transparent);
+}
+.panel h2 {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 14px; line-height: 1; color: var(--cursor); margin: 0 0 18px;
+}
+.panel h2::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--line) 70%, transparent); }
+.panel p { margin: 0; font-size: 19px; line-height: 1.55; }
+:lang(ja) .panel p { font-size: 17px; line-height: 1.8; }
+
+/* Downloads */
+#download { padding-top: clamp(72px, 10vw, 120px); }
+#download { }
+#download h2 { display: flex; align-items: center; gap: 14px; font-size: 14px; line-height: 1; color: var(--cursor); margin: 0 0 16px; }
+#download h2::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--line) 70%, transparent); order: 1; }
+#download h2 .all { order: 2; font-size: 12px; color: var(--muted); text-decoration: none; }
+#download h2 .all:hover { color: var(--text); }
+#download > p { margin: 0 0 28px; max-width: 40em; color: var(--muted); }
+.downloads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.dl {
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%, 0 100%);
+}
+.dl { position: relative; background: linear-gradient(180deg, var(--raised), var(--panel) 70%); }
+.dl::before { content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 45%; background: linear-gradient(90deg, var(--cursor), transparent); opacity: 0; }
+.dl.mine { box-shadow: inset 0 0 0 1px var(--cursor); }
+.dl.mine::before { opacity: 1; }
+.dl h3 { font: 700 22px/1.2 var(--display); margin: 0; display: flex; align-items: center; gap: 12px; }
+.dl h3 svg { width: 22px; height: 22px; color: var(--muted); }
+.yours { display: none; margin-left: auto; font-size: 11px; color: var(--cursor); border: 1px solid var(--cursor); padding: 4px 7px; }
+.dl.mine .yours { display: inline-block; }
+.dl .more { font-size: 14px; color: var(--muted); min-height: 1.65em; }
+.dl .more a { color: var(--muted); text-decoration: none; }
+.dl .more a:hover { color: var(--text); }
+.release { font-size: 14px; margin: 16px 0 0; }
+.release a { color: var(--muted); }
+@media (max-width: 800px) { .downloads { grid-template-columns: 1fr; } }
+
+/* The app's bottom bar. */
+footer { margin-top: clamp(64px, 9vw, 112px); background: var(--ground-top); border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent); padding: 22px 0 28px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+footer p { margin: 0; max-width: 46em; }
+footer .brand { font-size: 16px; gap: 8px; }
+footer .brand img { width: 22px; height: 22px; }
+footer nav { display: flex; gap: 22px; }
+footer nav a { color: var(--muted); text-decoration: none; }
+footer nav a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/icon.svg" alt="" width="30" height="30">nettai</a>
+    <nav>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="ja" aria-pressed="false">日本語</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <h1 data-i18n="hero.h">Play Battle Network netbattles online.</h1>
+        <p data-i18n="hero.p">nettai is rollback netplay for Mega Man Battle Network 4, 5 and 6. Make a build, then play a friend online, practice, or watch your old matches.</p>
+        <div class="cta">
+          <a class="btn primary caps" id="get" href="#download" data-i18n="hero.get">Download</a>
+        </div>
+      </div>
+      <div class="screen">
+        <video id="reel" autoplay muted loop playsinline preload="metadata" poster="assets/og.jpg">
+          <source src="assets/reel.mp4" type="video/mp4">
+        </video>
+        <button type="button" class="mute" id="mute" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor"/><path class="off" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2"/></svg><span id="mute-label">Sound on</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <ul class="games">
+      <li style="--c: var(--p1)"><b data-i18n="games.4.t">Battle Network 4</b><span data-i18n="games.4">Red Sun and Blue Moon</span></li>
+      <li style="--c: var(--action)"><b data-i18n="games.5.t">Battle Network 5</b><span data-i18n="games.5">Team ProtoMan and Team Colonel</span></li>
+      <li style="--c: var(--p2)"><b data-i18n="games.6.t">Battle Network 6</b><span data-i18n="games.6">Cybeast Gregar and Cybeast Falzar</span></li>
+    </ul>
+
+    <div id="online" class="part">
+      <div class="panel">
+        <h2 class="caps"><span data-i18n="online.h">Online</span></h2>
+        <p data-i18n="online.p">Make a room and send the code to a friend. They type it in and you're battling.</p>
+      </div>
+      <div class="screen"><img data-shot="online" alt="" loading="lazy" width="2560" height="1600"></div>
+    </div>
+
+    <div id="builds" class="part flip">
+      <div class="panel">
+        <h2 class="caps"><span data-i18n="builds.h">Builds</span></h2>
+        <p data-i18n="builds.p">Choose your navi, put a folder together, and set up the NaviCust and patch cards.</p>
+      </div>
+      <div class="screen"><img data-shot="builds-folder" alt="" loading="lazy" width="2560" height="1600"></div>
+    </div>
+
+    <div id="practice" class="part">
+      <div class="panel">
+        <h2 class="caps"><span data-i18n="practice.h">Practice</span></h2>
+        <p data-i18n="practice.p">Practice against a dummy. It can stand still or fight back.</p>
+      </div>
+      <div class="screen"><img data-shot="practice-menu" alt="" loading="lazy" width="2560" height="1600"></div>
+    </div>
+
+    <div id="replays" class="part flip">
+      <div class="panel">
+        <h2 class="caps"><span data-i18n="replays.h">Replays</span></h2>
+        <p data-i18n="replays.p">Your matches are saved, so you can watch them again or turn them into videos.</p>
+      </div>
+      <div class="screen"><img data-shot="viewer" alt="" loading="lazy" width="2560" height="1600"></div>
+    </div>
+
+    <div id="download">
+      <h2 class="caps"><span data-i18n="dl.h">Download</span><a class="all" href="https://github.com/nettaisen/nettai/releases" data-i18n="dl.all">All releases</a></h2>
+      <p data-i18n="dl.p">You'll need Mega Man Battle Network Legacy Collection Vol. 2 on Steam. nettai uses the graphics and sound from it.</p>
+      <div class="downloads">
+        <div class="dl" data-os="windows">
+          <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zM11.5 4.3 21 3v8.5h-9.5zM3 12.5h7.5v7.1L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg>Windows<span class="yours caps" data-i18n="dl.yours">Yours</span></h3>
+          <a class="btn primary caps" href="https://github.com/nettaisen/nettai/releases/latest/download/nettai-win-Setup.exe" data-i18n="dl.get">Download</a>
+          <div class="more"><a href="https://github.com/nettaisen/nettai/releases/latest/download/nettai-win-Portable.zip" data-i18n="dl.zip">Or the .zip, no install</a></div>
+        </div>
+        <div class="dl" data-os="mac">
+          <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4 1-1.4 1.4-2.7 1.4-2.8 0 0-2.7-1-2.7-4.2zM14 5.3c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>macOS<span class="yours caps" data-i18n="dl.yours">Yours</span></h3>
+          <a class="btn primary caps" href="https://github.com/nettaisen/nettai/releases/latest/download/nettai-osx-Portable.zip" data-i18n="dl.get">Download</a>
+          <div class="more"></div>
+        </div>
+        <div class="dl" data-os="linux">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16"/><path d="M7 9l3 3-3 3M12 15h5"/></svg>Linux<span class="yours caps" data-i18n="dl.yours">Yours</span></h3>
+          <a class="btn primary caps" href="https://github.com/nettaisen/nettai/releases/latest/download/nettai.AppImage" data-i18n="dl.get">Download</a>
+          <div class="more"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/icon.svg" alt="" width="22" height="22">nettai</a>
+    <p data-i18n="legal">Mega Man Battle Network is a trademark of CAPCOM CO., LTD. nettai is a fan project and is not affiliated with, funded, or in any way associated with Capcom.</p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const ja = {
+    "hero.h": "ロックマンエグゼのネットバトルを、オンラインで。",
+    "hero.p": "nettai は、ロックマンエグゼ4・5・6のロールバック対戦アプリです。構築を作って、友だちとオンラインで対戦したり、練習したり、前の対戦を見返したりできます。",
+    "hero.get": "ダウンロード",
+    "unmute": "音を出す",
+    "mute": "消音",
+    "games.4.t": "ロックマンエグゼ4",
+    "games.5.t": "ロックマンエグゼ5",
+    "games.6.t": "ロックマンエグゼ6",
+    "games.4": "レッドサン・ブルームーン",
+    "games.5": "チーム オブ ブルース・チーム オブ カーネル",
+    "games.6": "電脳獣グレイガ・電脳獣ファルザー",
+    "online.h": "オンライン対戦",
+    "online.p": "ルームを作って、コードを友だちに送るだけ。相手がコードを入れたら対戦開始です。",
+    "builds.h": "構築",
+    "builds.p": "ナビを選んで、フォルダを組んで、ナビカスタマイザーと改造カードを設定します。",
+    "practice.h": "練習",
+    "practice.p": "ダミーを相手に練習できます。立っているだけにも、反撃してくるようにもできます。",
+    "replays.h": "リプレイ",
+    "replays.p": "対戦は保存されるので、あとで見返したり、動画にしたりできます。",
+    "dl.h": "ダウンロード",
+    "dl.p": "Steam の「ロックマンエグゼ アドバンスドコレクション Vol.2」が必要です。nettai はそのグラフィックと音を使います。",
+    "dl.get": "ダウンロード",
+    "dl.zip": "インストール不要の .zip 版",
+    "dl.yours": "お使いの OS",
+    "dl.all": "すべてのリリース",
+    "legal": "「ロックマンエグゼ」は株式会社カプコンの商標です。nettai はファンプロジェクトであり、カプコンとの提携や出資など、一切の関係はありません。"
+  };
+  const en = { mute: "Sound off", unmute: "Sound on" };
+  document.querySelectorAll("[data-i18n]").forEach(el => { en[el.dataset.i18n] = el.textContent; });
+
+  const load = k => { try { return localStorage.getItem(k); } catch { return null; } };
+  const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  let lang = load("lang") || ((navigator.language || "").toLowerCase().startsWith("ja") ? "ja" : "en");
+
+  const reel = document.getElementById("reel");
+  const mute = document.getElementById("mute");
+  const t = k => (lang === "ja" ? ja : en)[k];
+
+  function apply() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    showSound();
+    document.querySelectorAll("img[data-shot]").forEach(img => { img.src = `assets/shots/${img.dataset.shot}-${lang}.webp`; });
+    reel.poster = `assets/shots/menu-${lang}.webp`;
+    document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  }
+  document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => {
+    lang = b.dataset.lang;
+    save("lang", lang);
+    apply();
+  }));
+  function showSound() {
+    mute.setAttribute("aria-pressed", String(!reel.muted));
+    document.getElementById("mute-label").textContent = t(reel.muted ? "unmute" : "mute");
+  }
+  mute.addEventListener("click", () => {
+    reel.muted = !reel.muted;
+    if (!reel.muted) reel.play();
+    showSound();
+  });
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { reel.removeAttribute("autoplay"); reel.pause(); }
+
+  // The top button: this computer's download, else the downloads.
+  const ua = navigator.userAgent;
+  const os = /Windows/.test(ua) ? "windows" : /Macintosh/.test(ua) ? "mac" : /Linux/.test(ua) && !/Android/.test(ua) ? "linux" : null;
+  if (os) {
+    const panel = document.querySelector(`.dl[data-os="${os}"]`);
+    panel.classList.add("mine");
+    document.getElementById("get").href = panel.querySelector(".btn").href;
+  }
+
+  apply();
+})();
+</script>
+</body>
+</html>
