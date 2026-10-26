@@ -1,8 +1,8 @@
 {
   "games": {
-    "exe4": { "index": "https://nettai.n1gp.net/exe4/index.json" },
-    "exe5": { "index": "https://nettai.n1gp.net/exe5/index.json" },
-    "exe6": { "index": "https://nettai.n1gp.net/exe6/index.json" }
+    "exe4": "https://nettai.n1gp.net/exe4/index.json",
+    "exe5": "https://nettai.n1gp.net/exe5/index.json",
+    "exe6": "https://nettai.n1gp.net/exe6/index.json"
   },
-  "ai": { "index": "https://nettai.n1gp.net/nettai-ai/index.json" }
+  "ai": "https://nettai.n1gp.net/nettai-ai/index.json"
 }
