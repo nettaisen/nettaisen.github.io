@@ -1,3 +1,7 @@
 {
-  "games": ["exe4", "exe5", "exe6"]
+  "games": {
+    "exe4": { "index": "https://nettai.n1gp.net/exe4/index.json" },
+    "exe5": { "index": "https://nettai.n1gp.net/exe5/index.json" },
+    "exe6": { "index": "https://nettai.n1gp.net/exe6/index.json" }
+  }
 }
